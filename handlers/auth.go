@@ -12,13 +12,21 @@ import (
 
 var client *mongo.Client
 
+func InitClient(mongoClient *mongo.Client) {
+	client = mongoClient
+}
+
 func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 	var user models.User
-	_ = json.NewDecoder(r.Body).Decode(&user)
+	err := json.NewDecoder(r.Body).Decode(&user)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
 	user.InitDate = time.Now()
 
 	collection := client.Database("myapp").Collection("users")
-	_, err := collection.InsertOne(context.Background(), user)
+	_, err = collection.InsertOne(context.Background(), user)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -30,5 +38,6 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]string{"token": token})
 }

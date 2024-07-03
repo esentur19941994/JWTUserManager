@@ -7,11 +7,19 @@ import (
 	"myapp/models"
 	"myapp/utils"
 	"net/http"
+	"strings"
 )
 
 func UsersHandler(w http.ResponseWriter, r *http.Request) {
 	tokenString := r.Header.Get("Authorization")
-	claims, err := utils.ValidateJWT(tokenString)
+	if strings.HasPrefix(tokenString, "Bearer ") {
+		tokenString = tokenString[7:]
+	} else {
+		http.Error(w, "Invalid token", http.StatusUnauthorized)
+		return
+	}
+
+	_, err := utils.ValidateJWT(tokenString) // Пропускаем переменную claims
 	if err != nil {
 		http.Error(w, "Invalid token", http.StatusUnauthorized)
 		return

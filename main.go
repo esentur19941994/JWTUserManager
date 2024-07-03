@@ -18,7 +18,8 @@ func main() {
 	defer cancel()
 
 	clientOptions := options.Client().ApplyURI("mongodb://localhost:27017")
-	client, err := mongo.Connect(ctx, clientOptions)
+	var err error
+	client, err = mongo.Connect(ctx, clientOptions)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -28,9 +29,12 @@ func main() {
 		log.Fatal(err)
 	}
 
+	handlers.InitClient(client)
+
 	router := mux.NewRouter()
 	router.HandleFunc("/register", handlers.RegisterHandler).Methods("POST")
 	router.HandleFunc("/users", handlers.UsersHandler).Methods("GET")
 
+	log.Println("Listening on :8000")
 	log.Fatal(http.ListenAndServe(":8000", router))
 }
